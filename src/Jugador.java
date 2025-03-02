@@ -1,31 +1,32 @@
 import javax.swing.JPanel;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
 public class Jugador {
     private static final int TOTAL_CARTAS = 10;
     private List<Carta> cartas;
-    private Random random;
+    private Random r;
 
     public Jugador() {
         cartas = new ArrayList<>();
-        random = new Random();
+        r = new Random();
     }
 
     public void repartir() {
         cartas.clear();
         for (int i = 0; i < TOTAL_CARTAS; i++) {
-            cartas.add(new Carta(random));
+            cartas.add(new Carta(r));
         }
     }
 
     public void mostrar(JPanel pnl) {
         pnl.removeAll();
-        int x = 10;
+        int x = 10 + (TOTAL_CARTAS-1)*40;
         for (Carta carta : cartas) {
             carta.mostrar(pnl, x, 10);
-            x += 40;
+            x -= 40;
         }
         pnl.revalidate();
         pnl.repaint();
@@ -56,24 +57,27 @@ public class Jugador {
 
         // Detectar escaleras por pinta
         for (Pinta pinta : Pinta.values()) {
-            List<Carta> cartasPinta = new ArrayList<>();
-            for (Carta carta : cartas) {
-                if (carta.getPinta() == pinta) {
-                    cartasPinta.add(carta);
-                }
-            }
-            cartasPinta.sort((a, b) -> a.getNombre().ordinal() - b.getNombre().ordinal());
+    List<Carta> cartasPinta = new ArrayList<>();
+    
+    // Filtrar cartas de la misma pinta
+    for (Carta carta : cartas) {
+        if (carta.getPinta() == pinta) {
+            cartasPinta.add(carta);
+        }
+    }
+    
+    // Ordenar cartas por su valor
+    cartasPinta.sort(Comparator.comparingInt(c -> c.getNombre().ordinal()));
 
-            List<Carta> escalera = new ArrayList<>();
-            for (int i = 0; i < cartasPinta.size() - 1; i++) {
-                if (cartasPinta.get(i + 1).getNombre().ordinal() == cartasPinta.get(i).getNombre().ordinal() + 1) {
-                    escalera.add(cartasPinta.get(i));
-                    escalera.add(cartasPinta.get(i + 1));
-                } else if (!escalera.isEmpty()) {
-                    break;
-                }
-            }
-
+    List<Carta> escalera = new ArrayList<>();
+    
+    for (int i = 0; i < cartasPinta.size(); i++) {
+        if (escalera.isEmpty() || 
+            cartasPinta.get(i).getNombre().ordinal() == escalera.get(escalera.size() - 1).getNombre().ordinal() + 1) {
+            
+            escalera.add(cartasPinta.get(i)); // Agregar carta si es consecutiva
+        } else if (cartasPinta.get(i).getNombre().ordinal() != escalera.get(escalera.size() - 1).getNombre().ordinal()) {
+            // Si se rompe la secuencia y la escalera es válida, la procesamos
             if (escalera.size() >= 3) {
                 mensaje.append("Escalera de ").append(pinta).append(": ");
                 for (Carta c : escalera) {
@@ -82,7 +86,22 @@ public class Jugador {
                 }
                 mensaje.append("\n");
             }
+            escalera.clear(); // Reiniciar para una nueva escalera
+            escalera.add(cartasPinta.get(i)); // Agregar la nueva carta inicial
         }
+    }
+
+    // Si al final hay una escalera válida, la agregamos
+    if (escalera.size() >= 3) {
+        mensaje.append("Escalera de ").append(pinta).append(": ");
+        for (Carta c : escalera) {
+            mensaje.append(c.getNombre()).append(", ");
+            cartasEnGrupo.add(c);
+        }
+        mensaje.append("\n");
+    }
+}
+
 
         // Calcular puntaje de cartas no agrupadas
         for (Carta c : cartas) {
