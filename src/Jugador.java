@@ -23,7 +23,7 @@ public class Jugador {
 
     public void mostrar(JPanel pnl) {
         pnl.removeAll();
-        int x = 10 + (TOTAL_CARTAS-1)*40;
+        int x = 10 + (TOTAL_CARTAS - 1) * 40;
         for (Carta carta : cartas) {
             carta.mostrar(pnl, x, 10);
             x -= 40;
@@ -57,51 +57,50 @@ public class Jugador {
 
         // Detectar escaleras por pinta
         for (Pinta pinta : Pinta.values()) {
-    List<Carta> cartasPinta = new ArrayList<>();
-    
-    // Filtrar cartas de la misma pinta
-    for (Carta carta : cartas) {
-        if (carta.getPinta() == pinta) {
-            cartasPinta.add(carta);
-        }
-    }
-    
-    // Ordenar cartas por su valor
-    cartasPinta.sort(Comparator.comparingInt(c -> c.getNombre().ordinal()));
-
-    List<Carta> escalera = new ArrayList<>();
-    
-    for (int i = 0; i < cartasPinta.size(); i++) {
-        if (escalera.isEmpty() || 
-            cartasPinta.get(i).getNombre().ordinal() == escalera.get(escalera.size() - 1).getNombre().ordinal() + 1) {
+            List<Carta> cartasPinta = new ArrayList<>();
             
-            escalera.add(cartasPinta.get(i)); // Agregar carta si es consecutiva
-        } else if (cartasPinta.get(i).getNombre().ordinal() != escalera.get(escalera.size() - 1).getNombre().ordinal()) {
-            // Si se rompe la secuencia y la escalera es válida, la procesamos
+            // Filtrar cartas de la misma pinta
+            for (Carta carta : cartas) {
+                if (carta.getPinta() == pinta) {
+                    cartasPinta.add(carta);
+                }
+            }
+            
+            // Ordenar cartas por su valor
+            cartasPinta.sort(Comparator.comparingInt(c -> c.getNombre().ordinal()));
+
+            List<Carta> escalera = new ArrayList<>();
+            
+            for (int i = 0; i < cartasPinta.size(); i++) {
+                if (escalera.isEmpty() || 
+                    cartasPinta.get(i).getNombre().ordinal() == escalera.get(escalera.size() - 1).getNombre().ordinal() + 1) {
+                    
+                    escalera.add(cartasPinta.get(i)); // Agregar carta si es consecutiva
+                } else if (cartasPinta.get(i).getNombre().ordinal() != escalera.get(escalera.size() - 1).getNombre().ordinal()) {
+                    // Si se rompe la secuencia y la escalera es válida, la procesamos
+                    if (escalera.size() >= 3) {
+                        mensaje.append(getNombreGrupo(escalera.size())).append(" de ").append(pinta).append(": ");
+                        for (Carta c : escalera) {
+                            mensaje.append(c.getNombre()).append(", ");
+                            cartasEnGrupo.add(c);
+                        }
+                        mensaje.append("\n");
+                    }
+                    escalera.clear(); // Reiniciar para una nueva escalera
+                    escalera.add(cartasPinta.get(i)); // Agregar la nueva carta inicial
+                }
+            }
+
+            // Si al final hay una escalera válida, la agregamos
             if (escalera.size() >= 3) {
-                mensaje.append("Escalera de ").append(pinta).append(": ");
+                mensaje.append(getNombreGrupo(escalera.size())).append(" de ").append(pinta).append(": ");
                 for (Carta c : escalera) {
                     mensaje.append(c.getNombre()).append(", ");
                     cartasEnGrupo.add(c);
                 }
                 mensaje.append("\n");
             }
-            escalera.clear(); // Reiniciar para una nueva escalera
-            escalera.add(cartasPinta.get(i)); // Agregar la nueva carta inicial
         }
-    }
-
-    // Si al final hay una escalera válida, la agregamos
-    if (escalera.size() >= 3) {
-        mensaje.append("Escalera de ").append(pinta).append(": ");
-        for (Carta c : escalera) {
-            mensaje.append(c.getNombre()).append(", ");
-            cartasEnGrupo.add(c);
-        }
-        mensaje.append("\n");
-    }
-}
-
 
         // Calcular puntaje de cartas no agrupadas
         for (Carta c : cartas) {
@@ -112,5 +111,13 @@ public class Jugador {
 
         mensaje.append("Puntaje de cartas que no están en grupos: ").append(puntajeNoGrupo);
         return mensaje.toString();
+    }
+
+    private String getNombreGrupo(int size) {
+        switch (size) {
+            case 3: return "Terna";
+            case 4: return "Cuarta";
+            default: return "Quinta";
+        }
     }
 }
