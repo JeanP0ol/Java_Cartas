@@ -27,15 +27,15 @@ public class FrmJuego extends JFrame {
         getContentPane().add(tpJugadores);
 
         pnlJugador1 = new JPanel();
-        pnlJugador1.setBackground(new Color(16, 139, 37));
+        pnlJugador1.setBackground(new Color(255, 165, 0));
         pnlJugador1.setLayout(null);
 
         pnlJugador2 = new JPanel();
-        pnlJugador2.setBackground(new Color(0, 255, 255));
+        pnlJugador2.setBackground(new Color(0, 0, 255));
         pnlJugador2.setLayout(null);
 
-        tpJugadores.addTab("Martín Estrada Contreras", pnlJugador1);
-        tpJugadores.addTab("Raúl Vidal", pnlJugador2);
+        tpJugadores.addTab("Goku", pnlJugador1);
+        tpJugadores.addTab("Vegueta", pnlJugador2);
 
         jugador1 = new Jugador();
         jugador2 = new Jugador();

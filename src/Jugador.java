@@ -1,8 +1,5 @@
 import javax.swing.JPanel;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Jugador {
     private static final int TOTAL_CARTAS = 10;
@@ -33,52 +30,44 @@ public class Jugador {
     }
 
     public String getGruposYEscaleras() {
-        StringBuilder mensaje = new StringBuilder("Los grupos encontrados:\n");
+        StringBuilder mensaje = new StringBuilder();
         int puntajeNoGrupo = 0;
         List<Carta> cartasEnGrupo = new ArrayList<>();
 
-        // Contador de cartas por nombre
-        int[] contador = new int[13];
+        // Agrupar cartas por nombre sin importar la pinta
+        Map<NombreCarta, List<Carta>> grupos = new HashMap<>();
         for (Carta carta : cartas) {
-            contador[carta.getNombre().ordinal()]++;
+            grupos.computeIfAbsent(carta.getNombre(), k -> new ArrayList<>()).add(carta);
         }
 
-        // Detectar grupos
-        for (int i = 0; i < contador.length; i++) {
-            if (contador[i] >= 2) {
-                mensaje.append("Par de ").append(NombreCarta.values()[i]).append("\n");
-                for (Carta c : cartas) {
-                    if (c.getNombre().ordinal() == i) {
-                        cartasEnGrupo.add(c);
-                    }
-                }
+        // Detectar ternas, cuartas y quintas
+        for (Map.Entry<NombreCarta, List<Carta>> entry : grupos.entrySet()) {
+            int size = entry.getValue().size();
+            if (size >= 2) {
+                mensaje.append(getNombreGrupo(size)).append(" de ").append(entry.getKey()).append("\n");
+                cartasEnGrupo.addAll(entry.getValue());
             }
         }
+
+        mensaje.append("Escaleras encontradas:\n");
 
         // Detectar escaleras por pinta
         for (Pinta pinta : Pinta.values()) {
             List<Carta> cartasPinta = new ArrayList<>();
-            
-            // Filtrar cartas de la misma pinta
             for (Carta carta : cartas) {
                 if (carta.getPinta() == pinta) {
                     cartasPinta.add(carta);
                 }
             }
-            
-            // Ordenar cartas por su valor
-            cartasPinta.sort(Comparator.comparingInt(c -> c.getNombre().ordinal()));
 
+            cartasPinta.sort(Comparator.comparingInt(c -> c.getNombre().ordinal()));
             List<Carta> escalera = new ArrayList<>();
-            
+
             for (int i = 0; i < cartasPinta.size(); i++) {
-                if (escalera.isEmpty() || 
-                    cartasPinta.get(i).getNombre().ordinal() == escalera.get(escalera.size() - 1).getNombre().ordinal() + 1) {
-                    
-                    escalera.add(cartasPinta.get(i)); // Agregar carta si es consecutiva
-                } else if (cartasPinta.get(i).getNombre().ordinal() != escalera.get(escalera.size() - 1).getNombre().ordinal()) {
-                    // Si se rompe la secuencia y la escalera es válida, la procesamos
-                    if (escalera.size() >= 3) {
+                if (escalera.isEmpty() || cartasPinta.get(i).getNombre().ordinal() == escalera.get(escalera.size() - 1).getNombre().ordinal() + 1) {
+                    escalera.add(cartasPinta.get(i));
+                } else {
+                    if (escalera.size() >= 2) {
                         mensaje.append(getNombreGrupo(escalera.size())).append(" de ").append(pinta).append(": ");
                         for (Carta c : escalera) {
                             mensaje.append(c.getNombre()).append(", ");
@@ -86,13 +75,12 @@ public class Jugador {
                         }
                         mensaje.append("\n");
                     }
-                    escalera.clear(); // Reiniciar para una nueva escalera
-                    escalera.add(cartasPinta.get(i)); // Agregar la nueva carta inicial
+                    escalera.clear();
+                    escalera.add(cartasPinta.get(i));
                 }
             }
 
-            // Si al final hay una escalera válida, la agregamos
-            if (escalera.size() >= 3) {
+            if (escalera.size() >= 2) {
                 mensaje.append(getNombreGrupo(escalera.size())).append(" de ").append(pinta).append(": ");
                 for (Carta c : escalera) {
                     mensaje.append(c.getNombre()).append(", ");
@@ -115,6 +103,7 @@ public class Jugador {
 
     private String getNombreGrupo(int size) {
         switch (size) {
+            case 2: return "Par";
             case 3: return "Terna";
             case 4: return "Cuarta";
             default: return "Quinta";
